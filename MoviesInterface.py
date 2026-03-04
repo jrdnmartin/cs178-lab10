@@ -107,7 +107,29 @@ def delete_movie():
     Prompt user for a Movie Title.
     Delete that item from the database.
     """
-    print("deleting movie")
+    title = input("Enter movie title: ").strip()
+
+    if not title:
+        print("Title cannot be empty.")
+        return
+    
+    try:
+        response = table.get_item(Key={"Title": title})
+        if "Item" not in response:
+            print(f"Movie '{title}' not found.")
+            return
+    except Exception as e:
+        print(f"Error fetching movie: {e}")
+        return
+
+    try:
+        table.delete_item(
+            Key={"Title": title},
+            ConditionExpression="attribute_exists(Title)"
+        )
+        print(f"Deleted movie: {title}")
+    except Exception as e:
+        print(f"Error deleting movie: {e}")
 
 def query_movie():
     """
