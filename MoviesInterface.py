@@ -14,13 +14,53 @@ def create_movie():
     Prompt user for a Movie Title.
     Add the movie to the database with the title and an empty Ratings list.
     """
-    print("creating a movie")
+    title = input("Enter movie title: ").strip()
+
+    if not title:
+        print("Title cannot be empty.")
+        return
+
+    try:
+        table.put_item(
+            Item={
+                "Title": title,
+                "Ratings": []
+            }
+        )
+        print(f"Created movie: {title}")
+    except Exception as e:
+        print(f"Error creating movie: {e}")
 
 def print_all_movies():
-    """
-    Display all movies in the database.
-    """
-    print("display all movies")
+    """Scan the entire Movies table and print each item."""
+    
+    # scan() retrieves ALL items in the table.
+    # For large tables you'd use query() instead — but for our small
+    # dataset, scan() is fine.
+    response = table.scan()
+    items = response.get("Items", [])
+    
+    if not items:
+        print("No movies found. Make sure your DynamoDB table has data.")
+        return
+    
+    print(f"Found {len(items)} movie(s):\n")
+    for movie in items:
+        print_movie(movie)
+
+def print_movie(movie):
+    """Print a single movie's details in a readable format."""
+    title = movie.get("Title", "Unknown Title")
+    year = movie.get("Year", "Unknown Year")
+    runtime = movie.get("Runtime (mins)", "Unknown Runtime")
+    ratings = movie.get("Ratings", "No ratings")
+
+    
+    print(f"  Title : {title}")
+    print(f"  Year  : {year}")
+    print(f"  Ratings: {ratings}")
+    print(f"  Runtime: {runtime}")
+    print()
 
 def update_rating():
     """
