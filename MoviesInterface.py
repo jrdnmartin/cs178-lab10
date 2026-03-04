@@ -68,7 +68,39 @@ def update_rating():
     Prompt user for a rating (integer).
     Append the rating to the movie's Ratings list in the database.
     """
-    print("updating rating")
+    title = input("Enter movie title: ").strip()
+
+    if not title:
+        print("Title cannot be empty.")
+        return
+    
+    try:
+        response = table.get_item(Key={"Title": title})
+        if "Item" not in response:
+            print(f"Movie '{title}' not found.")
+            return
+    except Exception as e:
+        print(f"Error fetching movie: {e}")
+        return
+
+    rating_text = input("Enter rating (integer): ").strip()
+    try:
+        rating = int(rating_text)
+    except ValueError:
+        print("Rating must be an integer.")
+        return
+
+    try:
+        table.update_item(
+            Key={"Title": title},
+            UpdateExpression="SET Ratings = list_append(Ratings, :r)",
+            ExpressionAttributeValues={
+                ":r": [rating]
+            },
+        )
+        print(f"Added rating {rating} to {title}.")
+    except Exception as e:
+        print(f"Error updating rating: {e}")
 
 def delete_movie():
     """
